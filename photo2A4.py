@@ -72,25 +72,17 @@ for image in sys.argv:
         width, height = img.size
 
     # If image is larger than the target size, scale it down. Else, scale it up.
-    if height > photoy:
+    if width > photox:
         print("SCALING DOWN")
-        r = float(height)/float(photoy)
-        r = float(width)/float(r)
-        img.thumbnail((int(r), photoy), Image.LANCZOS)
+        r = float(width)/float(photox)
+        r = float(height)/float(r)
+        img.thumbnail((photox, int(r)), Image.LANCZOS)
     else:
-        # If image is smaller, work out which side is closest to the target size and scale up until it hits the target
-        photoxdiff = photox - width
-        photoydiff = photoy - height
-        if photoxdiff > photoydiff:
-            print("SCALING UP TO HEIGHT")
-            r = float(photoy)/float(height)
-            r = float(width)*float(r)
-            img = img.resize((int(r), photoy), Image.LANCZOS)
-        else:
-            print("SCALING UP TO WIDTH")
-            r = float(photox)/float(width)
-            r = float(height)*float(r)
-            img = img.resize((photox, int(r)), Image.LANCZOS)
+        # If image is smaller, scale it up until it fills the width
+        print("SCALING UP TO WIDTH")
+        r = float(photox)/float(width)
+        r = float(height)*float(r)
+        img = img.resize((photox, int(r)), Image.LANCZOS)
 
     # Get new image size
     width, height = img.size
