@@ -27,19 +27,24 @@ leftpadding = 50
 middlepadding = 50
 resultpadding = 10
 
-# Crop images to fit (fit to width)
+# Crop images to fit
 cropmode = False
+
+fillwidth = False
+fillheight = False
 
 # Parse arguments
 def help():
     print("USAGE:")
     print(sys.argv[0]+" [-c] [image1] [image2] [image3]")
     print("Specify 1-3 image files to combine into an A4 image.")
-    print("-c Enable cropping of images to fit (fit to width)")
+    print("-c Crop images to fit")
+    print("-w Fill width")
+    print("-h Fill height")
     return
 
 try:
-    optlist, args = getopt.getopt(sys.argv[1:], "c")
+    optlist, args = getopt.getopt(sys.argv[1:], "cwh")
 except getopt.GetoptError as err:
     sys.stderr.write(str(err)+"\n")
     help()
@@ -48,16 +53,24 @@ except getopt.GetoptError as err:
 for o, a in optlist:
     if o == "-c":
         cropmode = True
+    elif o == "-w":
+        fillwidth = True
+    elif o == "-h":
+        fillheight = True
     else:
         sys.stderr.write("Unknown option: "+str(o)+"\n")
         sys.exit(1)
+
+if fillwidth and fillheight:
+    sys.stderr.write("Only one of fill width (-w) or fill height (-h) can be set at once.\n")
+    sys.exit(1)
 
 if len(args) < 1:
     help()
     sys.exit()
 
 if len(args) > 3:
-    sys.stderr.write("ERROR: Please specify 1-3 image files.")
+    sys.stderr.write("ERROR: Please specify 1-3 image files.\n")
     help()
     sys.exit(1)
 
@@ -85,7 +98,7 @@ for image in args:
         img = img.rotate(90, expand=True)
         width, height = img.size
 
-    if cropmode:
+    if fillwidth:
         # If image is larger than the target size, scale it down. Else, scale it up.
         if width > photox:
             print("SCALING DOWN")
@@ -98,6 +111,17 @@ for image in args:
             r = float(photox)/float(width)
             r = float(height)*float(r)
             img = img.resize((photox, int(r)), Image.LANCZOS)
+    elif fillheight:
+        if height > photoy:
+            print("SCALING DOWN")
+            r = float(height)/float(photoy)
+            r = float(width)/float(r)
+            img.thumbnail((int(r), photoy), Image.LANCZOS)
+        else:
+            print("SCALING UP TO HEIGHT")
+            r = float(photoy)/float(height)
+            r = float(width)*float(r)
+            img = img.resize((int(r), photoy), Image.LANCZOS)
     else:
         if height > photoy:
             print("SCALING DOWN")
